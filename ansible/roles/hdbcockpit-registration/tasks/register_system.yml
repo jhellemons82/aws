@@ -1,0 +1,70 @@
+---
+- name: Get all registered resources from HANA cockpit
+  uri:
+    url: "https://{{ hana_cockpit_server }}:{{ hana_cockpit_port }}/resource/RegisteredResourcesGet"
+    method: GET
+    headers:
+      Authorization: "Bearer {{ access_token }}"
+      Content-Type: "application/json"
+    validate_certs: no
+  register: registered_resources_response
+
+- name: Extract resource names
+  set_fact:
+    registered_resources: "{{ registered_resources_response.json | json_query('result[*].ResourceName') }}"
+
+- name: Check if tenantDB is already registered
+  set_fact:
+    is_tenantdb_registered: "{{ hana_sid in registered_resources }}"
+
+- name: Register HANA tenantDB in Cockpit
+  uri:
+    url: "https://{{ hana_cockpit_server }}:{{ hana_cockpit_port }}/registration/SystemRegister"
+    method: POST
+    headers:
+      Authorization: "Bearer {{ access_token }}"
+      Content-Type: "application/json"
+    body_format: json
+    body:
+      resourceName: "{{ hana_sid }}"
+      hostName: "{{ hana_host }}"
+      instanceNumber: "{{ hana_instance }}"
+      techUser: "{{ hana_user }}"
+      techUserCredentials: "{{ hana_cockpit_user_password }}"
+      isMultiTenant: "True"
+      databaseName: "{{ hana_sid }}"
+      security: ""
+    validate_certs: no
+  when: not is_tenantdb_registered
+  register: responses
+
+- name: Check if SYSTEMDB is already registered
+  set_fact:
+    is_systemdb_registered: "{{ ('SYSTEMDB@' + hana_sid ) in registered_resources }}"
+
+- name: Register HANA systemDB in Cockpit
+  uri:
+    url: "https://{{ hana_cockpit_server }}:{{ hana_cockpit_port }}/registration/SystemRegister"
+    method: POST
+    headers:
+      Authorization: "Bearer {{ access_token }}"
+      Content-Type: "application/json"
+    body_format: json
+    body:
+      resourceName: "SYSTEMDB@{{ hana_sid }}"
+      hostName: "{{ hana_host }}"
+      instanceNumber: "{{ hana_instance }}"
+      techUser: "{{ hana_user }}"
+      techUserCredentials: "{{ hana_cockpit_user_password }}"
+      isMultiTenant: "True"
+      databaseName: "SYSTEMDB"
+      security: ""
+    validate_certs: no
+  when: not is_systemdb_registered
+  register: systemdb_response
+
+- name: Remove temporary script
+  file:
+    path: /tmp/user_creation.sql
+    state: absent
+

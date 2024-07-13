@@ -1,0 +1,12 @@
+-- Check if the user exists before creating
+DO BEGIN
+  DECLARE user_exists INT;
+  SELECT COUNT(*) INTO user_exists FROM USERS WHERE USER_NAME = '{{ hana_user }}';
+  IF :user_exists = 0 THEN
+    EXEC 'CREATE USER {{ hana_user }} PASSWORD "{{ hana_cockpit_user_password }}";';
+    EXEC 'GRANT DATA ADMIN TO {{ hana_user }};';
+    EXEC 'GRANT CATALOG READ TO {{ hana_user }};';
+    EXEC 'GRANT SELECT ON SCHEMA _SYS_STATISTICS TO {{ hana_user }};';
+    EXEC 'ALTER USER {{ hana_user }} DISABLE PASSWORD LIFETIME;';
+  END IF;
+END;

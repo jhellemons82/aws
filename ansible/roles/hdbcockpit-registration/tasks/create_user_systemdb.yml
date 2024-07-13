@@ -1,0 +1,12 @@
+---
+- name: Template for user creation SQL
+  template:
+    src: user_creation.sql.j2
+    dest: /tmp/user_creation.sql
+
+- name: Create HANA User in systemDB
+  shell: hdbsql -i {{ hana_instance }} -u SYSTEM -p {{ hana_systemDB_password }} -d SYSTEMDB -I /tmp/user_creation.sql
+  register: systemdb_output
+  environment:
+    LD_LIBRARY_PATH: /usr/sap/{{ hana_sid }}/HDB{{ hana_instance }}/exe
+    PATH: /usr/sap/{{ hana_sid }}/HDB{{ hana_instance }}/exe:$PATH

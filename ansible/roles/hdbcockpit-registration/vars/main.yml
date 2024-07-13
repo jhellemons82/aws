@@ -1,0 +1,8 @@
+---
+hana_instance: "" # HANA instance number
+hana_cockpit_server: "" # hostname of your HANA cockpit environment
+hana_cockpit_port_token: "3xx32" # port number of your HANA cockpit uaa
+hana_cockpit_port: "5xx25" # port number of cockpit-adminui-svc
+hana_cockpit_get_port: "5xx26" # port for GET requests cockpit-admin-web-app
+client_id: "" # client id which you obtain from service key
+

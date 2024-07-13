@@ -1,0 +1,13 @@
+- name: Register HANA Database in Cockpit
+  hosts: ec2hosts
+  become: yes
+  vars_files:
+    - vault.yml
+  roles:
+    - role: hdbcockpit-registration
+      vars:
+        hana_sid: "{{ ec2status.tags.Sap_hdb_sid | upper }}" # specify the HANA SID which you want to register
+        hana_systemDB_password: "'{{ master_password }}'" # systemDB needs '' around the password
+        hana_tenantDB_password: "'{{ master_password }}'" # tenantDB needs '' around the password
+        hana_host: "{{ ec2status.tags.Sap_virtual_db_name }}" # specify the hostname of the HANA instance you want to register
+        hana_user: "HANACOCKPIT" # specify the user you want to use to register the resource in the HANA cockpit

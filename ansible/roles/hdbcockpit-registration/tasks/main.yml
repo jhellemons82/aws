@@ -1,0 +1,24 @@
+---
+- name: Get access token
+  uri:
+    url: "https://{{ hana_cockpit_server }}:{{ hana_cockpit_port_token }}/uaa-security/oauth/token"
+    method: POST
+    headers:
+      Content-Type: "application/x-www-form-urlencoded"
+    body_format: form-urlencoded
+    body:
+      client_id: "{{ client_id }}"
+      client_secret: "{{ client_secret }}"
+      grant_type: "password"
+      username: "COCKPIT_ADMIN"
+      password: "{{ master_password }}"
+    validate_certs: no
+  register: token_response
+
+- name: Set access token fact
+  set_fact:
+    access_token: "{{ token_response.json.access_token }}"
+
+- include_tasks: create_user_tenantdb.yml
+- include_tasks: create_user_systemdb.yml
+- include_tasks: register_system.yml
